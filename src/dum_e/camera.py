@@ -35,10 +35,50 @@ class CamConfig:
     exposure: int = 200            # 200=20ms (50Hz mains); 167=16.6ms (60Hz)
     power_line_frequency: int = 1  # 1=50Hz, 2=60Hz
     gain: int | None = None
+    rotate: int = 0                # CCW degrees applied on capture: 0/90/180/270
+
+    def __post_init__(self) -> None:
+        if self.rotate % 90 != 0:
+            raise CameraError("E_NO_CAMERA", f"rotate must be a multiple of 90, got {self.rotate}")
+        self.rotate = self.rotate % 360
 
     @property
     def device(self) -> str:
         return f"/dev/video{self.index}"
+
+    @classmethod
+    def from_config(cls, cfg: dict | None) -> "CamConfig":
+        """Build from the parsed ``config.yaml`` mapping.
+
+        Reads the top-level ``camera_index`` and the ``camera:`` block (width,
+        height, fps, exposure, power_line_frequency, gain, rotate)."""
+        cfg = cfg or {}
+        cam = dict(cfg.get("camera") or {})
+        index = cfg.get("camera_index", cam.get("index", 0))
+        defaults = cls()
+        return cls(
+            index=int(index),
+            width=int(cam.get("width", defaults.width)),
+            height=int(cam.get("height", defaults.height)),
+            fps=int(cam.get("fps", defaults.fps)),
+            exposure=int(cam.get("exposure", defaults.exposure)),
+            power_line_frequency=int(cam.get("power_line_frequency", defaults.power_line_frequency)),
+            gain=None if cam.get("gain") is None else int(cam["gain"]),
+            rotate=int(cam.get("rotate", defaults.rotate)),
+        )
+
+
+def _rotate_frame(frame, rotate: int):
+    """Rotate a frame counter-clockwise by ``rotate`` degrees (0/90/180/270).
+
+    Done with numpy so it stays testable without a live camera. Returns a
+    contiguous array (cv2.imwrite/VideoWriter need C-contiguous buffers)."""
+    import numpy as np
+
+    k = (int(rotate) // 90) % 4
+    if k == 0:
+        return frame
+    return np.ascontiguousarray(np.rot90(frame, k))
 
 
 def _v4l2_set(device: str, ctrl: str, value) -> None:
@@ -88,6 +128,7 @@ def capture_frame(out_path: str, cfg: CamConfig | None = None) -> dict:
         ok, frame = cap.read()
         if not ok or frame is None:
             raise CameraError("E_NO_CAMERA", "frame read failed")
+        frame = _rotate_frame(frame, cfg.rotate)
         cv2.imwrite(out_path, frame)
         h, w = frame.shape[:2]
         return {"path": out_path, "frame_wh": [int(w), int(h)]}
@@ -109,16 +150,18 @@ def record_clip(out_path: str, seconds: float = 5.0, cfg: CamConfig | None = Non
     luma: list[float] = []
     try:
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
-        writer = cv2.VideoWriter(out_path, fourcc, cfg.fps, (cfg.width, cfg.height))
         deadline = time.monotonic() + seconds
         wh = None
         while time.monotonic() < deadline:
             ok, frame = cap.read()
             if not ok or frame is None:
                 continue
+            frame = _rotate_frame(frame, cfg.rotate)
             if wh is None:
                 h, w = frame.shape[:2]
                 wh = [int(w), int(h)]
+                # Size the writer from the (post-rotation) frame so 90/270 swaps.
+                writer = cv2.VideoWriter(out_path, fourcc, cfg.fps, (wh[0], wh[1]))
             writer.write(frame)
             luma.append(float(np.asarray(frame).mean()))
         if wh is None:

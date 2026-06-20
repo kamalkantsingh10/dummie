@@ -22,6 +22,9 @@ camera:
   exposure: 200            # manual exposure: 200=20ms (50Hz mains), 167=16.6ms (60Hz)
   power_line_frequency: 1  # 1 = 50Hz, 2 = 60Hz (match your mains)
   gain: 64                 # raise if too dark (don't change exposure — it re-breaks anti-flicker)
+  rotate: 270              # CCW degrees applied on capture (0/90/180/270). The mount is
+                           # sideways (raw frame has the scene's "up" pointing left), so a
+                           # 90° clockwise correction (=270° CCW) makes captures upright.
 
 # --- Arm connection (Story 1.2 / 1.4 / 1.5) --------------------------------
 arm:

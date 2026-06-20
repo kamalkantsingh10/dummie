@@ -1,6 +1,6 @@
 # Story 1.3: Camera capture API (`camera.py`)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -19,22 +19,22 @@ so that survey, calibration, and critic steps have frames to work from.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Run-dir helper (AC: 1, 4)
-  - [ ] Implement `src/dum_e/rundir.py`: create/return `runs/<UTC-compact-ts>/` with `clips/`, `frames/` subdirs; provide path helpers for frame/clip filenames
-- [ ] Task 2: Camera capture (AC: 1, 3, 5)
-  - [ ] Implement `camera.py` capture using OpenCV (`VideoCapture(camera_index)` from `config.yaml`); read one frame, write PNG to `frames/`, return `{path, frame_wh}`
-  - [ ] Handle open/read failure → raise a typed error mapped to `E_NO_CAMERA`
-  - [ ] Release the device handle cleanly (context manager) — no leaked captures
-- [ ] Task 3: CLI wrapper (AC: 2, 3)
-  - [ ] Implement `scripts/survey.py` capture mode using the `dum_e/cli.py` JSON envelope helper; `artifacts=[frame_path]`, `data={frame_wh, ...}`
-- [ ] Task 4: Tests
-  - [ ] `tests/` unit test for filename convention + envelope shape (mock the camera read so tests don't need hardware)
-- [ ] Task 5: Camera mount — design, print, attach (AC: 6) [PHYSICAL]
-  - [ ] CAD a mount for the Image+ Fic760x camera that bolts to the wrist-roll (motor 5) output horn; lens points outward **along the roll axis** so motor 5 = landscape↔portrait
-  - [ ] Make it **rigid** (no flex/wobble — hand-eye calibration in Story 1.6 assumes the camera is fixed relative to the wrist) and **lightweight**
-  - [ ] Add a USB cable strain-relief / service loop so a 90°+ roll never tugs or unplugs the cable
+- [x] Task 1: Run-dir helper (AC: 1, 4)
+  - [x] Implement `src/dum_e/rundir.py`: create/return `runs/<UTC-compact-ts>/` with `clips/`, `frames/` subdirs; provide path helpers for frame/clip filenames
+- [x] Task 2: Camera capture (AC: 1, 3, 5)
+  - [x] Implement `camera.py` capture using OpenCV (`VideoCapture(camera_index)` from `config.yaml`); read one frame, write PNG to `frames/`, return `{path, frame_wh}`
+  - [x] Handle open/read failure → raise a typed error mapped to `E_NO_CAMERA`
+  - [x] Release the device handle cleanly (`try/finally` releases the capture) — no leaked captures
+- [x] Task 3: CLI wrapper (AC: 2, 3)
+  - [x] Implement `scripts/survey.py` capture mode using the `dum_e/cli.py` JSON envelope helper; `artifacts=[frame_path]`, `data={frame_wh, ...}`
+- [x] Task 4: Tests
+  - [x] `tests/` unit test for filename convention + envelope shape + rotation (camera read mocked so tests don't need hardware)
+- [x] Task 5: Camera mount — design, print, attach (AC: 6) [PHYSICAL]
+  - [x] CAD a mount for the Image+ Fic760x camera that bolts to the wrist-roll (motor 5) output horn; lens points outward **along the roll axis** so motor 5 = landscape↔portrait
+  - [x] Make it **rigid** (no flex/wobble — hand-eye calibration in Story 1.6 assumes the camera is fixed relative to the wrist) and **lightweight**
+  - [x] Add a USB cable strain-relief / service loop so a 90°+ roll never tugs or unplugs the cable
   - [ ] (Optional hedge) leave a small flat boss + 2× M2/M3 holes near the camera for a future IMU, per the sensor discussion — do NOT wire anything now
-  - [ ] 3D-print it, attach the camera, and mount to the arm; re-verify a capture (`scripts/survey.py`) is upright/clear (set the `rotate` option if the mount orientation needs it)
+  - [x] 3D-print it, attach the camera, and mount to the arm; re-verify a capture (`scripts/survey.py`) is upright/clear. The mount is sideways: raw frames have the scene "up" pointing **left**, so `camera.rotate` is set to **270 (= 90° clockwise)** to make captures upright. Verified against the apple-on-table scene.
 
 ## Dev Notes
 
@@ -62,8 +62,31 @@ so that survey, calibration, and critic steps have frames to work from.
 
 ### Agent Model Used
 
+claude-opus-4-8[1m] (Claude Code)
+
 ### Debug Log References
+
+- Live capture via `scripts/survey.py` against `/dev/video0` (Image+ Fic760x).
+- Raw frame (`rotate=0`): apple lies on its side, stem pointing left → mount is sideways.
+- `rotate=90` (CCW, the literal "anticlockwise"): apple upside-down (stem down) — wrong.
+- `rotate=270` (= 90° clockwise): apple upright on the table — correct. Set in `config.yaml`.
 
 ### Completion Notes List
 
+- Added a `rotate` option (CCW degrees 0/90/180/270) to `CamConfig` + `config.yaml`,
+  applied in both `capture_frame` and `record_clip` (writer sized from the post-rotation
+  frame so 90/270 swaps to portrait). Rotation uses `np.rot90` so it's testable without cv2.
+- `frame_wh` is measured AFTER rotation, keeping it the correct pairing partner for boxes.
+- `CamConfig.from_config()` + new `dum_e/config.py` loader read `config.yaml`.
+- `rundir.new_run_dir()` + `frame_path`/`clip_path` implement the frozen run-dir layout.
+- **Orientation note:** the requested "90° anticlockwise" produced an upside-down apple;
+  the upright result is 90° **clockwise** (`rotate: 270`). Flip the sign if the mount changes.
+- 19 tests pass (`pytest`). Camera read is mocked; live capture verified on hardware.
+
 ### File List
+
+- NEW: `src/dum_e/rundir.py`, `src/dum_e/config.py`
+- MOD: `src/dum_e/camera.py` (rotate option, `from_config`, rotation in capture/record)
+- MOD: `scripts/survey.py` (capture mode)
+- MOD: `config.yaml` (`camera.rotate: 270`)
+- NEW: `tests/test_camera.py`, `tests/test_rundir.py`; MOD: `tests/test_smoke.py`

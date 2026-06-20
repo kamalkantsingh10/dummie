@@ -13,6 +13,7 @@ def test_stub_modules_import():
     # Importing must not require hardware or optional deps (lazy imports inside).
     for mod in (
         "dum_e.cli",
+        "dum_e.config",
         "dum_e.rundir",
         "dum_e.arm",
         "dum_e.camera",
