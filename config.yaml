@@ -1,0 +1,56 @@
+# Dum-E runtime configuration.
+# See architecture.md "Implementation Patterns D. Naming & Structure".
+
+# --- Acquire (Story 2.x) ----------------------------------------------------
+# Which phrase->box backend to use: claude_box | yoloe | yolo_world
+# claude_box is the zero-dependency default for first-light (no model, no GPU).
+acquire_backend: claude_box
+
+# --- Camera (Story 1.2 / 1.3) ----------------------------------------------
+# "Image+ Fic760x" USB UVC camera on /dev/video0 (replaced a Logitech C920).
+# Verified by dum_e.camera.record_clip: CLEAN 1080p30 — 0.56% brightness CoV,
+# full 29.8 fps (the C920 could only manage flickery ~4.7% CoV 1080p).
+# Anti-flicker settings are applied by camera.py AFTER the format is set
+# (UVC resets exposure on format change).
+# NOTE: GUI camera apps (Cheese / GNOME Camera) flicker because they run their
+# own auto-exposure — that is NOT Dum-E's capture path. Ignore GUI-app flicker.
+camera_index: 0            # OpenCV device index of the arm-mounted USB camera
+camera:
+  width: 1920             # this camera does clean 1080p30
+  height: 1080
+  fps: 30
+  exposure: 200            # manual exposure: 200=20ms (50Hz mains), 167=16.6ms (60Hz)
+  power_line_frequency: 1  # 1 = 50Hz, 2 = 60Hz (match your mains)
+  gain: 64                 # raise if too dark (don't change exposure — it re-breaks anti-flicker)
+
+# --- Arm connection (Story 1.2 / 1.4 / 1.5) --------------------------------
+arm:
+  port: "/dev/ttyUSB0"     # SO-101 motor bus (CH340 serial @ 1,000,000 baud)
+  baud: 1000000
+  joint_units: deg         # Feetech STS3215 (model 777)
+  # 6-DoF CAMERA arm: motor 6 is NO LONGER the gripper — it now carries half a
+  # leader-arm linkage that pans the camera (yaw) independently of the wrist.
+  motor_ids: [1, 2, 3, 4, 5, 6]   # shoulder_pan, shoulder_lift, elbow_flex, wrist_flex, wrist_roll, camera_pan
+
+# --- Motion safety (Story 1.5, FR-14) --------------------------------------
+# All values are placeholders — tune against the real arm. arm.py enforces these.
+safety:
+  joint_limits_deg:        # per-joint [min, max], 6 joints (fill with real ranges)
+    - [-180, 180]          # 1 shoulder_pan
+    - [-180, 180]          # 2 shoulder_lift
+    - [-180, 180]          # 3 elbow_flex
+    - [-180, 180]          # 4 wrist_flex
+    - [-180, 180]          # 5 wrist_roll
+    - [-180, 180]          # 6 camera_pan  (half-leader; tighten to real travel)
+  workspace_box: null      # optional Cartesian bounding box; null = joint-limits only
+  velocity_cap_deg_per_step: 5.0   # max change per joint per control tick
+  stop_sentinel: runs/STOP         # presence of this file halts motion immediately
+
+# --- Framing / servo (Story 2.4) -------------------------------------------
+center_tolerance_frac: 0.20   # "centered" = target centroid within central 20% of frame
+
+# --- Video (Story 3.x / 4.4) -----------------------------------------------
+clip:
+  target_seconds_min: 15
+  target_seconds_max: 40
+  resolution: [1920, 1080]

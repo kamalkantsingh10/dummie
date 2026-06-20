@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dum-e"
+version = "0.0.1"
+description = "Dum-E — autonomous robotic videographer (Claude Code Skill + SO-101 control library)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "AGPL-3.0-or-later" }
+authors = [{ name = "Kamal" }]
+
+# Core v1 runtime deps. All v1 inference is CPU-only — NO torch/ROCm/CUDA here.
+# Pin exact versions after confirming current LeRobot + SO-101 support on HF docs.
+dependencies = [
+    "lerobot",          # SO-101 control + LeRobotDataset format (pin after verifying)
+    "opencv-python",    # camera capture + CSRT tracker
+    "jsonschema",       # shot-log schema validation (Story 3.5)
+    "pyyaml",           # config.yaml loading
+]
+
+[project.optional-dependencies]
+# Open-vocabulary detectors for the acquire step (Story 2.6), CPU inference.
+# Optional so first-light (claude_box backend) needs none of this.
+yolo = [
+    "ultralytics",      # YOLOE / YOLO-World (AGPL-3.0 — fine: project ceiling is personal/OSS)
+]
+dev = [
+    "pytest",
+    "ruff",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "scripts", "tests"]

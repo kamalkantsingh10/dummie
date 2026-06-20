@@ -1,0 +1,12 @@
+# Conda environment for Dum-E (v1, CPU-only).
+# Usage:  conda env create -f environment.yml && conda activate dum-e
+#         pip install -e ".[dev]"
+name: dum-e
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - ffmpeg          # used by stitch.py (Story 4.4)
+  - pip:
+      - -e .[dev]

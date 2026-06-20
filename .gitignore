@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual / conda envs
+.venv/
+venv/
+env/
+
+# Dum-E runtime artifacts (regenerated; never committed)
+runs/*
+!runs/.gitkeep
+calibration/*
+!calibration/.gitkeep
+
+# Model weights (optional detectors; pulled on demand)
+*.pt
+*.onnx
+weights/
+
+# OS
+.DS_Store
+
+# VSCode C/C++ IntelliSense browse cache (large, regenerated)
+.vscode/browse.vc.db*

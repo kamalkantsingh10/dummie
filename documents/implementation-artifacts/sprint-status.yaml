@@ -1,0 +1,88 @@
+# generated: 2026-06-19
+# last_updated: 2026-06-20 (Story 1.1 in review; Story 1.2 done — arm assembled + servos)
+# project: dum-e
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: documents/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+#
+# DUM-E SEQUENCING NOTES (critical path):
+# - Epic 1 is a hard prerequisite; story 1-2 is PHYSICAL hardware assembly (stage-0), 1-5 (arm safety) gates all motion.
+# - v1 critical path runs to 3-6 (trainable shot logs) and 4-5 (end-to-end video).
+# - v2 (learned policy) targeted week of 2026-06-26 → 3-6 trainable logs is the v1→v2 exit criterion.
+# - Risk-carrying SPIKE stories to schedule early within their epics: 2-6 (yoloe CPU latency), 3-1 (Cartesian push_in).
+
+generated: 2026-06-19
+last_updated: 2026-06-19
+project: dum-e
+project_key: NOKEY
+tracking_system: file-system
+story_location: documents/implementation-artifacts
+
+development_status:
+  # Epic 1: Safe, Calibrated Camera Arm (Hardware Foundation)
+  epic-1: in-progress
+  1-1-project-scaffold-dev-environment: review
+  1-2-assemble-so101-mount-camera: done
+  1-3-camera-capture-api: ready-for-dev
+  1-4-hardware-bringup-verification: ready-for-dev
+  1-5-arm-safety-module: ready-for-dev
+  1-6-hand-eye-self-calibration: ready-for-dev
+  epic-1-retrospective: optional
+
+  # Epic 2: Talk-to-Target Framing
+  epic-2: backlog
+  2-1-acquire-backend-interface-claude-box: backlog
+  2-2-scene-survey: backlog
+  2-3-csrt-tracker-wrapper: backlog
+  2-4-hold-center-visual-servo: backlog
+  2-5-framing-critic: backlog
+  2-6-yoloe-acquire-backend-cpu-latency-spike: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Cinematic Shots — Capture & Training Logs
+  epic-3: backlog
+  3-1-cartesian-motion-spike-push-in: backlog
+  3-2-push-in-primitive: backlog
+  3-3-clip-recording: backlog
+  3-4-photo-capture: backlog
+  3-5-shot-log-schema-validator: backlog
+  3-6-wire-shot-logging-trainable-check: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: The Autonomous Director (End-to-End Video)
+  epic-4: backlog
+  4-1-intent-intake-skill-invocation: backlog
+  4-2-shot-plan-generation: backlog
+  4-3-plan-review-approval: backlog
+  4-4-stitch-final-video: backlog
+  4-5-end-to-end-director-pass: backlog
+  epic-4-retrospective: optional
