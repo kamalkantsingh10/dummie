@@ -93,18 +93,4 @@ def test_both_fail_reports_both(bringup, monkeypatch):
     assert rc == 1 and env["ok"] is False
     assert "E_NO_MOTORS" in env["error"]["message"] and "E_NO_CAMERA" in env["error"]["message"]
 
-
-# ---- arm unit (pure, no hardware) ------------------------------------------
-
-def test_steps_to_deg():
-    assert arm._steps_to_deg(0) == 0.0
-    assert arm._steps_to_deg(4096) == pytest.approx(360.0)
-    assert arm._steps_to_deg(2048) == pytest.approx(180.0)
-
-
-def test_resolve_bus_prefers_explicit_then_config_then_default():
-    # explicit args win
-    assert arm._resolve_bus("/dev/ttyX", 9600, [1, 2], cfg={}) == ("/dev/ttyX", 9600, [1, 2])
-    # falls back to cfg
-    cfg = {"arm": {"port": "/dev/ttyZ", "baud": 500000, "motor_ids": [1, 2, 3]}}
-    assert arm._resolve_bus(None, None, None, cfg=cfg) == ("/dev/ttyZ", 500000, [1, 2, 3])
+# (arm step<->deg + bus resolution are now covered in tests/test_arm_safety.py)

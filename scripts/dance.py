@@ -2,9 +2,11 @@
 """Gentle 'dance' for the 5-DoF SO-101 camera arm — every move capped to a
 max angle (default 45 deg) to ONE side of each joint's rest position.
 
-Safe demo / camera-test routine. Reads each joint's start pose, moves relative
-to it (auto-direction toward mid-range so it never drives into a limit),
-returns home, and releases torque at the end.
+⚠️  BENCH TOOL ONLY — bypasses the arm.py safety chokepoint (Story 1.5) and
+drives multiple joints OPEN-LOOP with no soft limits. This caused elbow↔shoulder
+collisions before limits existed (see servo-calibration-notes). Do NOT use for
+runtime motion. Runtime/automation must route through dum_e.arm (move_to/step).
+Kept only as a manual bring-up demo; prefer arm.py once Story 1.6 homing lands.
 
 Usage: python scripts/dance.py [--max-deg 45] [--speed 380] [--port /dev/ttyUSB0]
 """

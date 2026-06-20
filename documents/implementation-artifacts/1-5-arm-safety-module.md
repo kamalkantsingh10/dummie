@@ -1,6 +1,6 @@
 # Story 1.5: Arm safety module (`arm.py`) — sole servo path
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -19,20 +19,20 @@ so that no motion can ever exceed safe bounds (FR-14).
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Define the safe-motion API (AC: 1)
-  - [ ] Implement `arm.py` as the sole servo interface: `connect()`, `read_joints()` (reuse/relocate from 1.4), `move_to(joint_target)` / `step(joint_delta)`, `disconnect()`
-  - [ ] Internally own the LeRobot/Feetech driver handle; expose NO driver object to callers
-- [ ] Task 2: Limits & caps (AC: 2, 3, 5)
-  - [ ] Load soft joint limits, workspace box, velocity/step caps from `config.yaml`
-  - [ ] Clamp (or refuse) any target outside limits; enforce per-step velocity caps by subdividing moves
-  - [ ] Log clamps/refusals to stderr with `E_OUT_OF_BOUNDS` context
-- [ ] Task 3: Stop sentinel (AC: 4)
-  - [ ] Implement `src/dum_e/safety.py`: stop-sentinel file path + check helper + set/clear helpers
-  - [ ] Check the sentinel at every control tick inside `arm.py`; on presence, halt immediately and return `E_STOPPED`
-- [ ] Task 4: Tests (AC: 6)
-  - [ ] `tests/test_arm_safety.py` with a mocked driver: assert clamping, cap subdivision, and immediate stop on sentinel
-- [ ] Task 5: Migrate read path
-  - [ ] Ensure `bringup.py` (1.4) and any reader uses `arm.read_joints()` so there is exactly one connection/driver owner
+- [x] Task 1: Define the safe-motion API (AC: 1)
+  - [x] `arm.py` is the sole servo interface: `Arm` (context-mgr `connect`/`disconnect`), `read_joints()`, `move_to(targets_deg)`, `step(deltas_deg)`, `relax()` + module-level convenience wrappers
+  - [x] Feetech driver fully encapsulated in `_FeetechBus` (lazy `scservo_sdk`); NO driver object exposed to callers
+- [x] Task 2: Limits & caps (AC: 2, 3, 5)
+  - [x] Loads `joint_limits_deg`, `workspace_box`, `velocity_cap_deg_per_step` from `config.yaml`
+  - [x] Clamps targets to soft limits; enforces the per-tick velocity cap by subdividing the move into `ceil(max_delta/cap)` increments
+  - [x] Logs clamps to stderr with `E_OUT_OF_BOUNDS` context; result carries `clamped`/`warnings`
+- [x] Task 3: Stop sentinel (AC: 4)
+  - [x] `src/dum_e/safety.py`: `stop_sentinel_path` / `stop_requested` / `request_stop` / `clear_stop` (+ `clamp_to_limits`)
+  - [x] Sentinel checked before motion AND at every tick; on presence → halt, no further goals, return `E_STOPPED`
+- [x] Task 4: Tests (AC: 6)
+  - [x] `tests/test_arm_safety.py` (mocked bus): clamp hi/lo, cap subdivision, multi-joint cap, stop-present-refuses, stop-mid-move-halts, relative step, arity, + an architecture guard that only `arm.py` imports the driver
+- [x] Task 5: Migrate read path
+  - [x] `bringup.py` already calls `arm.read_joints()` — single connection/driver owner; re-verified live
 
 ## Dev Notes
 
@@ -62,8 +62,46 @@ so that no motion can ever exceed safe bounds (FR-14).
 
 ### Agent Model Used
 
+claude-opus-4-8[1m] (Claude Code)
+
 ### Debug Log References
+
+- Live on hardware (joint 6 only; others held): capped +8° move subdivided into
+  2 ticks (cap 5°/tick), `ok:true`. STOP test — with the sentinel present a move
+  was refused: `ok:false`, `E_STOPPED`, zero new goals. Sentinel cleared, joint
+  restored, `relax()` released torque. `bringup` still `ok:true` end-to-end.
+- **Observed (calibration hazard, not a bug):** after `relax()`, joint 4
+  (wrist_flex) sagged under gravity from raw 3706 → 74, i.e. **across the 4095↔0
+  encoder wrap** — exactly the rollover the notes warn about. Confirms torque-held
+  is the safe resting state and that homing + real soft limits (Story 1.6) must
+  precede any unattended/multi-joint motion. See [[servo-calibration-notes]].
 
 ### Completion Notes List
 
+- **Degree convention switched to CENTERED:** `deg = (steps-2048)*360/4096 ∈ [-180,180)`
+  so it matches `config.yaml` `joint_limits_deg: [-180,180]` — the placeholder limits
+  become a safe full-range no-op until Story 1.6 homes each joint and captures real
+  ranges. (This re-bases the numbers `read_joints`/`bringup` report vs the raw 0–360
+  used in the 1.4 first cut; still degrees.)
+- **Safety enforced on every command:** clamp → (refuse if already stopped) → subdivide
+  to ≤cap ticks → check sentinel each tick → write goals. Velocity cap is exact at the
+  nominal increment; only sub-encoder-step (<0.09°) quantization remains.
+- **Driver chokepoint (AC1):** an automated test asserts `arm.py` is the only file under
+  `src/dum_e/` importing `scservo_sdk`. The two Story-1.2 BENCH scripts
+  (`scripts/setup_servos.py`, `scripts/dance.py`) deliberately use the SDK directly for
+  low-level setup/demo and are NOT part of the runtime path; `dance.py` now carries a
+  ⚠️ header steering runtime motion to `arm.py` (it drives multi-joint open-loop, which
+  caused the earlier collisions).
+- **Workspace box:** `null` in config → joint-limits only. If set, `arm.py` logs that
+  Cartesian bounds aren't enforced in v1 (no FK yet; that's later).
+- **`relax()`** added to power joints down; note moves otherwise leave the arm holding
+  position (the documented safe state for `E_STOPPED`).
+- 36 tests pass (`pytest`); all motion/driver logic mocked, so the suite needs no hardware.
+
 ### File List
+
+- MOD: `src/dum_e/arm.py` (full actuation: `Arm`, `_FeetechBus`, move_to/step/relax, centered deg)
+- MOD: `src/dum_e/safety.py` (stop sentinel + `clamp_to_limits`)
+- NEW: `tests/test_arm_safety.py`
+- MOD: `tests/test_bringup.py` (dropped obsolete arm-internal unit tests; covered in test_arm_safety)
+- MOD: `scripts/dance.py` (⚠️ bench-only header — bypasses arm.py)
