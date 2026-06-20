@@ -1,6 +1,6 @@
 # Story 1.4: Hardware bring-up verification (`bringup.py`)
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -17,13 +17,13 @@ so that I can confirm the rig is healthy before any motion work.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Read-only motor comms (AC: 1, 2, 3)
-  - [ ] Implement a read-only joint-read in `src/dum_e/arm.py` interface surface (a `read_joints()` that does NOT command motion) OR a minimal LeRobot connection read; expose `joint_pos` (6 floats) + `joint_units` ("deg")
-  - [ ] Map a missing/timed-out motor to a typed error (e.g. `E_NO_MOTORS` / appropriate `E_*`)
-- [ ] Task 2: Compose bring-up check (AC: 1, 2, 4)
-  - [ ] Implement `scripts/bringup.py`: read joints + call `camera.py` capture; combine into one JSON envelope; `ok` is the AND of both
-- [ ] Task 3: Tests
-  - [ ] Unit test the envelope/aggregation logic with mocked motor-read + camera (no hardware needed)
+- [x] Task 1: Read-only motor comms (AC: 1, 2, 3)
+  - [x] Implemented read-only `arm.read_joints()` (NO motion) via the Feetech `scservo_sdk` bus; exposes `joint_pos` (6 floats), `raw_steps`, `motor_ids`, `joint_units="deg"`
+  - [x] Missing/timed-out motor or unopenable bus → `ArmError("E_NO_MOTORS")`
+- [x] Task 2: Compose bring-up check (AC: 1, 2, 4)
+  - [x] Implemented `scripts/bringup.py`: read joints + `camera.capture_frame`; one JSON envelope; `ok` = AND of both legs (legs run independently so partial data is reported)
+- [x] Task 3: Tests
+  - [x] `tests/test_bringup.py` covers both-ok / motor-fail / camera-fail / both-fail aggregation + `arm` step→deg and bus-resolution units (motor-read + camera mocked, no hardware)
 
 ## Dev Notes
 
@@ -49,8 +49,34 @@ so that I can confirm the rig is healthy before any motion work.
 
 ### Agent Model Used
 
+claude-opus-4-8[1m] (Claude Code)
+
 ### Debug Log References
+
+- Live read-only run on hardware (motor power ON):
+  `ok:true`, `joint_pos=[120.15, 176.31, 65.57, 325.72, 159.08, 151.7] deg`,
+  `frame_wh=[1080,1920]`. All 6 motors responded + camera captured.
+- Earlier "won't move" symptom during the 5/6 jog test was the **motor power supply
+  being off** — STS3215 logic is bus-powered so reads succeed without motor power.
+  See [[servo-calibration-notes]].
 
 ### Completion Notes List
 
+- **Driver decision:** used the Feetech `scservo_sdk` bus directly (NOT LeRobot —
+  lerobot isn't installed; the bench tooling already uses `scservo_sdk`). The AC
+  permits either; `arm.read_joints()` is a pure read with no actuation path.
+- **`joint_pos` are uncalibrated raw degrees** (steps × 360/4096, 0–360). Zero/home
+  and clean soft limits come in Story 1.6; bringup only needs "motors alive + position".
+- **Env consolidation:** `bringup.py` needs both `cv2` (system python) and
+  `scservo_sdk` (project `.venv`). Set `.venv/pyvenv.cfg`
+  `include-system-site-packages = true` so `.venv/bin/python` sees the system cv2/numpy/yaml
+  plus the venv's SDK. Run live with `PYTHONPATH=src .venv/bin/python scripts/bringup.py`.
+- READ-ONLY honored: no `move_to` path touched; `arm.move_to` stays a Story 1.5 stub.
+- 25 tests pass (`pytest`); motor + camera mocked, so the suite needs no hardware/SDK.
+
 ### File List
+
+- MOD: `src/dum_e/arm.py` (read-only `read_joints` via scservo_sdk, `ArmError`, step→deg)
+- MOD: `scripts/bringup.py` (read joints + capture → one envelope, `ok` = AND)
+- NEW: `tests/test_bringup.py`
+- MOD: `.venv/pyvenv.cfg` (include-system-site-packages = true — local env, not committed)

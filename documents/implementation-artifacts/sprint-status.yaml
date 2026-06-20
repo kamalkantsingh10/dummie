@@ -41,7 +41,7 @@
 # - Risk-carrying SPIKE stories to schedule early within their epics: 2-6 (yoloe CPU latency), 3-1 (Cartesian push_in).
 
 generated: 2026-06-19
-last_updated: 2026-06-19
+last_updated: 2026-06-20  # Stories 1-3 (camera capture) and 1-4 (bringup) done — live-verified on hardware
 project: dum-e
 project_key: NOKEY
 tracking_system: file-system
@@ -52,8 +52,8 @@ development_status:
   epic-1: in-progress
   1-1-project-scaffold-dev-environment: review
   1-2-assemble-so101-mount-camera: done
-  1-3-camera-capture-api: ready-for-dev
-  1-4-hardware-bringup-verification: ready-for-dev
+  1-3-camera-capture-api: done
+  1-4-hardware-bringup-verification: done
   1-5-arm-safety-module: ready-for-dev
   1-6-hand-eye-self-calibration: ready-for-dev
   epic-1-retrospective: optional
