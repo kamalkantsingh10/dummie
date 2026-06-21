@@ -7,6 +7,8 @@ from a single line of intent.
 > Named after Tony Stark's clumsy, endearing lab-assistant arm. Minor imperfection
 > is on-brand — this is a prototype.
 
+<p align="center"><img src="docs/dum-e.jpg" width="640" alt="Dum-E — the SO-101 camera arm, mid-build"></p>
+
 ## Layout
 
 | Path | Role |
