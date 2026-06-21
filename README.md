@@ -15,7 +15,8 @@ from a single line of intent.
 | `scripts/` | Thin CLI **adapters** — each prints one JSON object on stdout (see contract). |
 | `.claude/skills/dum-e/` | The Claude **director** (`SKILL.md`) that orchestrates the scripts. |
 | `schemas/` | Frozen JSON schemas (e.g. the shot-log contract, Story 3.5). |
-| `runs/`, `calibration/` | Runtime artifacts (gitignored). |
+| `runs/` | Runtime artifacts (gitignored). |
+| `calibration/` | Calibration **profiles** tracked (`joints.json`, `handeye.json`); transient captures gitignored. |
 | `train/` | v2 placeholder — consumes `runs/` as a `LeRobotDataset`. |
 
 Planning docs live under `documents/planning-artifacts/` (PRD, architecture, epics)
@@ -56,7 +57,10 @@ pip install -e ".[dev]"
 pytest
 ```
 
-## Status
+## Build log
 
-Greenfield. Epic 1 (hardware foundation) in progress — start with story 1.1 (this
-scaffold), then **assemble the arm** (story 1.2).
+Progress a weekend at a time — newest on top.
+
+| Weekend | Highlights | Photo |
+|--------|-----------|-------|
+| **1** | Assembled the SO-101; camera + motor **bring-up**; arm-safety chokepoint (`arm.py`, the sole servo path); **re-based the motor driver on LeRobot**; hand-eye calibration scaffolding; **all 6 joints range-calibrated** (re-zeroed, real soft limits in `config.yaml`). 5/6 joints move under command — elbow (motor 3) pending a beefier power supply. | <a href="docs/dum-e.jpg"><img src="docs/dum-e.jpg" width="150" alt="Dum-E, weekend 1"></a> |

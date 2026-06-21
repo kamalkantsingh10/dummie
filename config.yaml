@@ -36,15 +36,19 @@ arm:
   motor_ids: [1, 2, 3, 4, 5, 6]   # shoulder_pan, shoulder_lift, elbow_flex, wrist_flex, wrist_roll, camera_pan
 
 # --- Motion safety (Story 1.5, FR-14) --------------------------------------
-# All values are placeholders — tune against the real arm. arm.py enforces these.
+# arm.py enforces these. joint_limits_deg below are REAL, measured by
+# `calibrate.py range` on 2026-06-21 (centered, symmetric, 3deg safety margin).
+# MATCHED SET: these are valid only against the homing offsets persisted in the
+# servos' EEPROM + calibration/joints.json. If the arm is reassembled/re-homed,
+# regenerate both (run `range` per joint) — stale limits would be in the wrong frame.
 safety:
-  joint_limits_deg:        # per-joint [min, max], 6 joints (fill with real ranges)
-    - [-180, 180]          # 1 shoulder_pan
-    - [-180, 180]          # 2 shoulder_lift
-    - [-180, 180]          # 3 elbow_flex
-    - [-180, 180]          # 4 wrist_flex
-    - [-180, 180]          # 5 wrist_roll
-    - [-180, 180]          # 6 camera_pan  (half-leader; tighten to real travel)
+  joint_limits_deg:        # per-joint [min, max] deg, centered frame, 4deg margin
+    - [-103.6, 103.6]      # 1 shoulder_pan
+    - [-102.1, 102.1]      # 2 shoulder_lift
+    - [-90.4, 90.4]        # 3 elbow_flex
+    - [-98.3, 98.3]        # 4 wrist_flex
+    - [-160.9, 160.9]      # 5 wrist_roll  (near-360 travel; wrap sits in the dead zone)
+    - [-49.1, 49.1]        # 6 camera_pan
   workspace_box: null      # optional Cartesian bounding box; null = joint-limits only
   velocity_cap_deg_per_step: 5.0   # max change per joint per control tick
   stop_sentinel: runs/STOP         # presence of this file halts motion immediately

@@ -256,7 +256,7 @@ Dum-E can constrain Camera Arm motion to safe limits and halt motion on command.
 
 ## 8. Open Questions
 1. Camera choice and mounting on the SO-101 — model, resolution, FOV, cabling. (Hardware concern; confirm in architecture.)
-2. SO-101 control stack — LeRobot vs direct Feetech servo control; what's already working on Kamal's bench? `[ASSUMPTION: LeRobot/Feetech Python.]`
+2. SO-101 control stack — LeRobot vs direct Feetech servo control; what's already working on Kamal's bench? `[ASSUMPTION: LeRobot/Feetech Python.]` **RESOLVED (Story 1.5/1.6 build):** lean on LeRobot — `arm.py`'s driver sits on `lerobot.motors.feetech.FeetechMotorsBus` (raw encoder steps), and joint-range calibration (FR-11) uses LeRobot's calibration facility. The `SOFollower` robot class is deliberately deferred to v2 (see architecture "LeRobot adoption boundary").
 3. How does Claude get the live camera frame inside a Skill run — captured stills on demand vs a stream? (Drives FR-2/FR-5 latency.)
 4. Calibration persistence — re-run every session or only when the rig changes?
 5. Workspace/safe-bounds definition — how are joint/workspace limits configured for FR-14?

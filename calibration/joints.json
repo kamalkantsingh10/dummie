@@ -1,0 +1,66 @@
+{
+  "kind": "joint_range_calibration",
+  "motors": {
+    "1": {
+      "drive_mode": 0,
+      "homing_offset": -755,
+      "limit_deg": [
+        -103.6,
+        103.6
+      ],
+      "range_max": 3272,
+      "range_min": 824
+    },
+    "2": {
+      "drive_mode": 0,
+      "homing_offset": 1127,
+      "limit_deg": [
+        -102.1,
+        102.1
+      ],
+      "range_max": 3256,
+      "range_min": 840
+    },
+    "3": {
+      "drive_mode": 0,
+      "homing_offset": 1766,
+      "limit_deg": [
+        -90.4,
+        90.4
+      ],
+      "range_max": 3122,
+      "range_min": 974
+    },
+    "4": {
+      "drive_mode": 0,
+      "homing_offset": -1875,
+      "limit_deg": [
+        -98.3,
+        98.3
+      ],
+      "range_max": 3212,
+      "range_min": 884
+    },
+    "5": {
+      "drive_mode": 0,
+      "homing_offset": -1183,
+      "limit_deg": [
+        -160.9,
+        160.9
+      ],
+      "range_max": 3924,
+      "range_min": 172
+    },
+    "6": {
+      "drive_mode": 0,
+      "homing_offset": -212,
+      "limit_deg": [
+        -49.1,
+        49.1
+      ],
+      "range_max": 2652,
+      "range_min": 1444
+    }
+  },
+  "version": 2
+}
