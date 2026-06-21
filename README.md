@@ -7,6 +7,8 @@ from a single line of intent.
 > Named after Tony Stark's clumsy, endearing lab-assistant arm. Minor imperfection
 > is on-brand — this is a prototype.
 
+![Dum-E — the SO-101 arm with its 3D-printed "DUM-e" nameplate, mid-build](docs/dum-e.jpg)
+
 ## Layout
 
 | Path | Role |
@@ -15,7 +17,8 @@ from a single line of intent.
 | `scripts/` | Thin CLI **adapters** — each prints one JSON object on stdout (see contract). |
 | `.claude/skills/dum-e/` | The Claude **director** (`SKILL.md`) that orchestrates the scripts. |
 | `schemas/` | Frozen JSON schemas (e.g. the shot-log contract, Story 3.5). |
-| `runs/`, `calibration/` | Runtime artifacts (gitignored). |
+| `runs/` | Runtime artifacts (gitignored). |
+| `calibration/` | Calibration **profiles** tracked (`joints.json`, `handeye.json`); transient captures gitignored. |
 | `train/` | v2 placeholder — consumes `runs/` as a `LeRobotDataset`. |
 
 Planning docs live under `documents/planning-artifacts/` (PRD, architecture, epics)
