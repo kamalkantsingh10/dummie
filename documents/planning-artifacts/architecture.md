@@ -60,6 +60,7 @@ Robotics control + agentic Claude-Code Skill — NOT a web/mobile/API app, so co
 - Provides: SO-101 motor config, hand-eye/arm calibration, teleop, synchronized camera + trajectory recording, and the `LeRobotDataset` format + training stack.
 - Rationale: it is the canonical SO-101 stack; reusing it avoids reinventing motor control, calibration, capture, AND the training data format.
 - Assembly: follow HF "Assemble SO-101" guide (stage-0 prerequisite).
+- **LeRobot adoption boundary (v1) — bus + calibration, NOT the follower robot.** `arm.py`'s driver sits on LeRobot's `lerobot.motors.feetech.FeetechMotorsBus` (which wraps `scservo_sdk`) for wire protocol + torque control, exchanging RAW encoder steps (`normalize=False`) so Dum-E's own centered-degrees math and soft limits need no LeRobot calibration dict. The servo joint-range calibration (FR-11 / Story 1.6) leans on LeRobot's calibration facility (homing offsets + range-of-motion). We deliberately do **NOT** adopt the `SOFollower` robot class in v1: it bundles camera ownership (conflicts with our tuned `camera.py`), ships only a coarse `max_relative_target` safety clamp (weaker than the FR-14 chokepoint, which we'd have to wrap it in anyway), and assumes a gripper on motor 6 (ours is a camera-pan half-leader). Its real payoff — normalized observation/action spaces for dataset recording + policy rollout — lands in v2; adopt `SOFollower` then.
 
 **Director layer → Claude Code Skill format.**
 - The repo already uses the Skill convention (`.claude/skills/*`). Dum-E ships as a skill: instruction set (director logic) + bundled Python control scripts.
@@ -213,7 +214,7 @@ dum-e/                              # repo root
 │   └── stitch.py                    # → FR-10
 ├── schemas/
 │   └── shot_log.v1.json             # JSON Schema = validation source of truth for FR-13
-├── calibration/                     # persisted hand-eye profile (gitignored)
+├── calibration/                     # calibration profiles TRACKED (joints.json, handeye.json); transient captures gitignored
 ├── runs/                            # session outputs: <ts>/{clips,frames,shots.jsonl,plan.json} (gitignored)
 ├── train/                           # v2 PLACEHOLDER — consumes runs/ as LeRobotDataset (ROCm)
 ├── tests/
@@ -231,7 +232,7 @@ dum-e/                              # repo root
 ### Architectural Boundaries
 - **Brain ↔ Muscle:** SKILL.md (Claude) NEVER touches hardware directly — it only invokes `scripts/*` via Bash and reads their JSON + saved frames. All cognition (plot, target choice, critic) is in the skill; all actuation is in scripts/lib.
 - **Scripts ↔ Library:** scripts/ are thin — parse flags, call `dum_e`, print JSON. No control logic in scripts; no CLI/JSON concerns in the library. (Same boundary lets the deferred MCP server wrap the library without disturbing scripts.)
-- **Safety chokepoint:** `arm.py` is the ONLY module that commands servos. Nothing else imports the motor driver. Enforces D3 by construction.
+- **Safety chokepoint:** `arm.py` is the ONLY module that commands servos. Nothing else imports the motor driver — the driver (LeRobot's `FeetechMotorsBus`, encapsulated in `arm._FeetechBus` as a raw-steps surface) and the raw `scservo_sdk` are both forbidden outside `arm.py` (enforced by a test guard). `arm.py` exposes `move_to` / `step` (limit-clamped, velocity-capped, stop-sentinel-checked motion) plus `hold` / `relax` (per-joint torque on/off, e.g. to hand-sweep a joint's range during calibration). Enforces D3 by construction.
 - **Schema chokepoint:** all shot-log writes go through `shotlog.py` against `schemas/shot_log.v1.json`. Nothing hand-writes JSONL.
 
 ### Requirements → Structure Mapping

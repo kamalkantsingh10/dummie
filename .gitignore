@@ -16,8 +16,12 @@ env/
 # Dum-E runtime artifacts (regenerated; never committed)
 runs/*
 !runs/.gitkeep
+# calibration/: track the reviewed calibration PROFILES; ignore transient captures
+# (sweep traces, logs, .tmp, patches) which are large and regenerable.
 calibration/*
 !calibration/.gitkeep
+!calibration/joints.json
+!calibration/handeye.json
 
 # Model weights (optional detectors; pulled on demand)
 *.pt
