@@ -7,8 +7,6 @@ from a single line of intent.
 > Named after Tony Stark's clumsy, endearing lab-assistant arm. Minor imperfection
 > is on-brand — this is a prototype.
 
-![Dum-E — the SO-101 arm with its 3D-printed "DUM-e" nameplate, mid-build](docs/dum-e.jpg)
-
 ## Layout
 
 | Path | Role |
@@ -59,7 +57,10 @@ pip install -e ".[dev]"
 pytest
 ```
 
-## Status
+## Build log
 
-Greenfield. Epic 1 (hardware foundation) in progress — start with story 1.1 (this
-scaffold), then **assemble the arm** (story 1.2).
+Progress a weekend at a time — newest on top.
+
+| Weekend | Highlights | Photo |
+|--------|-----------|-------|
+| **1** | Assembled the SO-101; camera + motor **bring-up**; arm-safety chokepoint (`arm.py`, the sole servo path); **re-based the motor driver on LeRobot**; hand-eye calibration scaffolding; **all 6 joints range-calibrated** (re-zeroed, real soft limits in `config.yaml`). 5/6 joints move under command — elbow (motor 3) pending a beefier power supply. | <a href="docs/dum-e.jpg"><img src="docs/dum-e.jpg" width="150" alt="Dum-E, weekend 1"></a> |
