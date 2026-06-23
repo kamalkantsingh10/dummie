@@ -1,8 +1,9 @@
 # Dum-E 🦾🎬
 
 An autonomous robotic videographer for hardware projects — a Claude Code Skill that
-drives an SO-101 arm-mounted camera to plot, shoot, and stitch short demo videos
-from a single line of intent.
+drives an SO-101 arm-mounted camera to **direct, film, and edit** short demo videos
+from a single line of intent. Import the skill, attach the hardware, and you can
+direct Claude to film your own demos.
 
 > Named after Tony Stark's clumsy, endearing lab-assistant arm. Minor imperfection
 > is on-brand — this is a prototype.
@@ -65,4 +66,4 @@ Progress a weekend at a time — newest on top.
 
 | Weekend | Highlights | Photo |
 |--------|-----------|-------|
-| **1** | Assembled the SO-101; camera + motor **bring-up**; arm-safety chokepoint (`arm.py`, the sole servo path); **re-based the motor driver on LeRobot**; hand-eye calibration scaffolding; **all 6 joints range-calibrated** (re-zeroed, real soft limits in `config.yaml`). 5/6 joints move under command — elbow (motor 3) pending a beefier power supply. | <a href="docs/dum-e.jpg"><img src="docs/dum-e.jpg" width="150" alt="Dum-E, weekend 1"></a> |
+| **1** | Assembled the SO-101; camera + motor **bring-up**; arm-safety chokepoint (`arm.py`, the sole servo path); **re-based the motor driver on LeRobot**; hand-eye calibration scaffolding; **all 6 joints range-calibrated** (re-zeroed, real soft limits in `config.yaml`). Replaced the **faulty elbow servo** (the original was electrically dead — stiff backdrive + running hot) and tuned out the motion jerk: traced it to **STS3215 gear-backlash + low-speed stick-slip**, fixed with `P_Coefficient=16` (slow-speed judder ~43 → ~0 stutters/sweep) plus single-direction, faster moves. **Dum-E directed, filmed, and edited its first demo** — a cinematic move around a subject, shot on its own wrist camera and stitched into a labelled side-by-side with an external angle. | <a href="docs/dum-e.jpg"><img src="docs/dum-e.jpg" width="150" alt="Dum-E, weekend 1"></a> |

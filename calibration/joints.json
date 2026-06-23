@@ -23,13 +23,13 @@
     },
     "3": {
       "drive_mode": 0,
-      "homing_offset": 1766,
+      "homing_offset": -1963,
       "limit_deg": [
-        -90.4,
-        90.4
+        -87.8,
+        87.8
       ],
-      "range_max": 3122,
-      "range_min": 974
+      "range_max": 3092,
+      "range_min": 1004
     },
     "4": {
       "drive_mode": 0,

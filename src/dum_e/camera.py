@@ -36,6 +36,8 @@ class CamConfig:
     power_line_frequency: int = 1  # 1=50Hz, 2=60Hz
     gain: int | None = None
     rotate: int = 0                # CCW degrees applied on capture: 0/90/180/270
+    autofocus: bool = True         # False -> manual focus locked (no hunting mid-shot)
+    focus: int | None = None       # focus_absolute when autofocus is off (camera-specific units)
 
     def __post_init__(self) -> None:
         if self.rotate % 90 != 0:
@@ -65,6 +67,8 @@ class CamConfig:
             power_line_frequency=int(cam.get("power_line_frequency", defaults.power_line_frequency)),
             gain=None if cam.get("gain") is None else int(cam["gain"]),
             rotate=int(cam.get("rotate", defaults.rotate)),
+            autofocus=bool(cam.get("autofocus", defaults.autofocus)),
+            focus=None if cam.get("focus") is None else int(cam["focus"]),
         )
 
 
@@ -97,6 +101,12 @@ def apply_anti_flicker(cfg: CamConfig) -> None:
     _v4l2_set(cfg.device, "exposure_time_absolute", cfg.exposure)
     if cfg.gain is not None:
         _v4l2_set(cfg.device, "gain", cfg.gain)
+    # Focus: lock it (manual) for stills/clips so autofocus can't hunt mid-shot.
+    # Order matters — disable continuous AF BEFORE writing focus_absolute (it's
+    # inactive while AF is on).
+    _v4l2_set(cfg.device, "focus_automatic_continuous", 1 if cfg.autofocus else 0)
+    if not cfg.autofocus and cfg.focus is not None:
+        _v4l2_set(cfg.device, "focus_absolute", cfg.focus)
 
 
 def open_capture(cfg: CamConfig):
